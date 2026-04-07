@@ -2,7 +2,7 @@
 FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.2.3
 
 # Install Node.js so Gitea's standard Actions (like actions/checkout) work!
-RUN apt-get update && apt-get install -y nodejs git curl libnghttp2-14 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nodejs git curl libnghttp2-14 7zip && rm -rf /var/lib/apt/lists/*
 
 # Create a permanent folder for the SDK inside the container
 WORKDIR /opt/ncs
