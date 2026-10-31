@@ -1,0 +1,36 @@
+# Start with the official Nordic toolchain (compilers, python, west)
+FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.2.3
+
+# Install Node.js so Gitea's standard Actions (like actions/checkout) work!
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs \
+    git \
+    curl \
+    libnghttp2-14 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a permanent folder for the SDK inside the container
+WORKDIR /opt/ncs
+
+# 1. Download the core nRF Connect SDK
+RUN west init -m https://github.com/nrfconnect/sdk-nrf --mr v3.2.3 . && \
+    west update --narrow -o=--depth=1
+
+# 2. Clone the Zigbee add-on directly into /opt/ncs
+RUN git clone --depth 1 --branch v1.4.0 https://github.com/nrfconnect/ncs-zigbee.git /opt/ncs/ncs-zigbee
+
+# 3. Permanently export Zephyr & register Zigbee in CMake package registry
+ENV ZEPHYR_BASE=/opt/ncs/zephyr
+ENV PATH="/opt/ncs/zephyr/scripts:${PATH}"
+
+# Register Zephyr and Zigbee modules in the container root CMake package registry (~/.cmake/packages)
+RUN west zephyr-export && \
+    zephyr-env/bin/zephyr-package-export 2>/dev/null || true && \
+    git config --global --add safe.directory "*"
+
+# Set default extra modules so any raw 'west build' picks it up automatically
+ENV ZEPHYR_EXTRA_MODULES=/opt/ncs/ncs-zigbee
+ENV PM_EXTRA_PARTITION_FILES=/opt/ncs/ncs-zigbee/subsys/partition_manager/pm.yml
+
+# Default working directory for Gitea runners
+WORKDIR /workspace
