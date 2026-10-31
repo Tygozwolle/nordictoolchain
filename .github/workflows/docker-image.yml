@@ -49,7 +49,7 @@ jobs:
           echo "Building & pushing Zigbee image to $IMAGE_ID:zigbee-v3.2.3"
 
           docker build . \
-            --file dockerfile.zigbee \
+            --file Dockerfile.zigbee \
             --tag "$IMAGE_ID:zigbee-v3.2.3"
 
           docker push "$IMAGE_ID:zigbee-v3.2.3"
